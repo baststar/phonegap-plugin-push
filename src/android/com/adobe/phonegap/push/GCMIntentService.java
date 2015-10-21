@@ -13,6 +13,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
@@ -25,10 +26,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -577,4 +578,49 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
 
         return retval;
     }
+
+    private void playSound(String pUrl){
+        /**
+         * SoundMessageTest
+         */
+        try {
+            URL url = new URL("http://www.noiseaddicts.com/samples_1w72b820/279.mp3");
+            URLConnection connection = url.openConnection();
+            connection.connect();
+            // this will be useful so that you can show a typical 0-100% progress bar
+            int fileLength = connection.getContentLength();
+
+            // download the file
+            InputStream input = new BufferedInputStream(connection.getInputStream());
+            OutputStream output = new FileOutputStream("/sdcard/myanimalsound.mp3");
+
+            byte data[] = new byte[1024];
+            int count;
+            while ((count = input.read(data)) != -1) {
+                output.write(data, 0, count);
+            }
+            output.flush();
+            output.close();
+            input.close();
+            Log.d(LOG_TAG, "### onMessage Download Sound Complete");
+            MediaPlayer player = new MediaPlayer();
+            long duration = -2;
+            try {
+                player.setDataSource("/sdcard/myanimalsound.mp3");
+                player.prepare();
+                duration = player.getDuration();
+                player.start();
+                Thread.sleep(duration);
+                player.stop();
+                player.release();
+            } catch (Exception e) {
+                Log.d(LOG_TAG, "### onMessage Set and play sound error");
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            Log.d(LOG_TAG, "### onMessage Download Sound ERROR");
+            e.printStackTrace();
+        }
+    }
+
 }
